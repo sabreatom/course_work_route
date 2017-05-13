@@ -18,9 +18,7 @@ for row in gps_data:
         if (row[0] == 0):
             day_num = row[0]
             sequence_num = 0
-            #x[sequence_num].append([round(row[1], 4), round(row[2], 4)])
-            x[sequence_num].append(round(row[1], 4))
-            x[sequence_num].append(round(row[2], 4))
+            x[sequence_num].append([round(row[1], 4), round(row[2], 4)])
             y.append(row[3])
             first_time = False
         else:
@@ -28,41 +26,38 @@ for row in gps_data:
             sys.exit()
     else:
         if (day_num == row[0]):
-            #x[sequence_num].append([round(row[1], 4), round(row[2], 4)])
-            x[sequence_num].append(round(row[1], 4))
-            x[sequence_num].append(round(row[2], 4))
+            x[sequence_num].append([round(row[1], 4), round(row[2], 4)])
         else:
             day_num = row[0]
             sequence_num = sequence_num + 1
             x.append([])
-            #x[sequence_num].append([round(row[1], 4), round(row[2], 4)])
-            x[sequence_num].append(round(row[1], 4))
-            x[sequence_num].append(round(row[2], 4))
+            x[sequence_num].append([round(row[1], 4), round(row[2], 4)])
             y.append(row[3])
 
-#Find out average number of coordinates per day:
-average = 0
+#Find out max number of coordinates per day:
+max_value = 0
 for day in x:
-    average = average + len(day) #accumulate total
+    if (len(day) > max_value):
+        max_value = len(day)
 
-average = average / len(x)
-
-#Truncate and pad dataset:
-pad = lambda a,i : a[0:i] if len(a) > i else a + [0.0] * (i-len(a))
-
-for num in range(len(x)):
-    x[num] = pad(x[num], average)
+#if number of coordinat per day is less then max then append zero coordinats:
+for day in x:
+    if (len(day) > max_value):
+        day = day[0:max_value]
+    else:
+        for j in range((max_value - len(day))):
+            day.append([0.0,0.0])
 
 x = np.array(x) #convert to numpy array
 y = np.array(y) #convert to numpy array
 
-x = np.reshape(x, (x.shape[0], 1, x.shape[1]))
+x = np.reshape(x, (x.shape[0], 2, x.shape[1]))
 
 #Create sequential neural network model:
 model = Sequential()
-model.add(LSTM(32, input_shape=(1,average)))
+model.add(LSTM(32, input_shape=(2,max_value)))
 model.add(Dense(1, activation='sigmoid'))
-#model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
-model.fit(x, y, epochs=50, batch_size=1, verbose=2)
+model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+model.fit(x, y, epochs=1000, batch_size=10, verbose=0)
 print model.predict(x)
+
