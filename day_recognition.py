@@ -1,10 +1,16 @@
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.layers import LSTM
+from keras.callbacks import EarlyStopping
+from keras.callbacks import Callback
 
 from numpy import genfromtxt
 import numpy as np
 import sys
+import matplotlib.pyplot as plt
+
+# fix random seed for reproducibility
+np.random.seed(7)
 
 #Import aggregated data, day numbering need to start from zero:
 gps_data = genfromtxt('aggregated_data.csv', delimiter=',', skip_header=1)
@@ -53,11 +59,65 @@ y = np.array(y) #convert to numpy array
 
 x = np.reshape(x, (x.shape[0], 2, x.shape[1]))
 
-#Create sequential neural network model:
-model = Sequential()
-model.add(LSTM(32, input_shape=(2,max_value)))
-model.add(Dense(1, activation='sigmoid'))
-model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-model.fit(x, y, epochs=1000, batch_size=10, verbose=0)
-print model.predict(x)
+#Callbacks:
+class My_Callback(Callback):
+    def on_epoch_end(self, epoch, logs={}):
+        if logs.get('val_acc') > 0.8:
+            self.model.stop_training = True
 
+callbacks = [My_Callback()]
+
+#callbacks = [ EarlyStopping(monitor='val_acc', min_delta=0, patience=50, verbose=0, mode='auto') ]
+
+#Create sequential neural network model three layers:
+model1 = Sequential()
+model1.add(LSTM(50, input_shape=(2,max_value)))
+model1.add(Dense(1, activation='sigmoid'))
+model1.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+history1 = model1.fit(x, y, validation_split=0.2, epochs=500, batch_size=32, verbose=0, callbacks=callbacks)
+
+#Create sequential neural network model three layers:
+model2 = Sequential()
+model2.add(LSTM(50, input_shape=(2,max_value)))
+model2.add(Dense(30, activation='relu'))
+model2.add(Dense(1, activation='sigmoid'))
+model2.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+history2 = model2.fit(x, y, validation_split=0.2, epochs=500, batch_size=32, verbose=0, callbacks=callbacks)
+
+#Create sequential neural network model two layers and smaller number of elements:
+model3 = Sequential()
+model3.add(LSTM(30, input_shape=(2,max_value)))
+model3.add(Dense(1, activation='sigmoid'))
+model3.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+history3 = model3.fit(x, y, validation_split=0.2, epochs=500, batch_size=32, verbose=0, callbacks=callbacks)
+
+#Create sequential neural network model three layers and smaller number of elements:
+model4 = Sequential()
+model4.add(LSTM(30, input_shape=(2,max_value)))
+model4.add(Dense(5, activation='relu'))
+model4.add(Dense(1, activation='sigmoid'))
+model4.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+history4 = model4.fit(x, y, validation_split=0.2, epochs=500, batch_size=32, verbose=0, callbacks=callbacks)
+
+#Plot results:
+plt.subplot(2, 2, 1)  
+plt.plot(history1.history['acc'], 'r', label = 'Accuracy')
+plt.plot(history1.history['loss'], 'g', label = 'Loss')
+plt.plot(history1.history['val_acc'], 'b', label = 'Validation accuracy')
+
+plt.subplot(2, 2, 2)  
+plt.plot(history2.history['acc'], 'r', label = 'Accuracy')
+plt.plot(history2.history['loss'], 'g', label = 'Loss')
+plt.plot(history2.history['val_acc'], 'b', label = 'Validation accuracy')
+
+plt.subplot(2, 2, 3)  
+plt.plot(history3.history['acc'], 'r', label = 'Accuracy')
+plt.plot(history3.history['loss'], 'g', label = 'Loss')
+plt.plot(history3.history['val_acc'], 'b', label = 'Validation accuracy')
+
+plt.subplot(2, 2, 4)  
+plt.plot(history4.history['acc'], 'r', label = 'Accuracy')
+plt.plot(history4.history['loss'], 'g', label = 'Loss')
+plt.plot(history4.history['val_acc'], 'b', label = 'Validation accuracy')
+
+plt.show()
