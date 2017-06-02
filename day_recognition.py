@@ -62,42 +62,40 @@ x = np.reshape(x, (x.shape[0], 2, x.shape[1]))
 #Callbacks:
 class My_Callback(Callback):
     def on_epoch_end(self, epoch, logs={}):
-        if logs.get('val_acc') > 0.8:
+        if logs.get('acc') > 0.85:
             self.model.stop_training = True
 
 callbacks = [My_Callback()]
 
-#callbacks = [ EarlyStopping(monitor='val_acc', min_delta=0, patience=50, verbose=0, mode='auto') ]
-
 #Create sequential neural network model three layers:
 model1 = Sequential()
-model1.add(LSTM(50, input_shape=(2,max_value)))
+model1.add(LSTM(60, input_shape=(2,max_value)))
 model1.add(Dense(1, activation='sigmoid'))
-model1.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-history1 = model1.fit(x, y, validation_split=0.2, epochs=500, batch_size=32, verbose=0, callbacks=callbacks)
+model1.compile(loss='binary_crossentropy', optimizer='sgd', metrics=['accuracy'])
+history1 = model1.fit(x, y, validation_split=0.1, epochs=1000, batch_size=10, verbose=0, callbacks=callbacks)
 
 #Create sequential neural network model three layers:
 model2 = Sequential()
-model2.add(LSTM(50, input_shape=(2,max_value)))
-model2.add(Dense(30, activation='relu'))
+model2.add(LSTM(60, input_shape=(2,max_value)))
+model2.add(Dense(40, activation='relu'))
 model2.add(Dense(1, activation='sigmoid'))
-model2.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-history2 = model2.fit(x, y, validation_split=0.2, epochs=500, batch_size=32, verbose=0, callbacks=callbacks)
+model2.compile(loss='binary_crossentropy', optimizer='sgd', metrics=['accuracy'])
+history2 = model2.fit(x, y, validation_split=0.1, epochs=1000, batch_size=10, verbose=0, callbacks=callbacks)
 
 #Create sequential neural network model two layers and smaller number of elements:
 model3 = Sequential()
 model3.add(LSTM(30, input_shape=(2,max_value)))
 model3.add(Dense(1, activation='sigmoid'))
-model3.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-history3 = model3.fit(x, y, validation_split=0.2, epochs=500, batch_size=32, verbose=0, callbacks=callbacks)
+model3.compile(loss='binary_crossentropy', optimizer='sgd', metrics=['accuracy'])
+history3 = model3.fit(x, y, validation_split=0.1, epochs=1000, batch_size=10, verbose=0, callbacks=callbacks)
 
 #Create sequential neural network model three layers and smaller number of elements:
 model4 = Sequential()
 model4.add(LSTM(30, input_shape=(2,max_value)))
 model4.add(Dense(5, activation='relu'))
 model4.add(Dense(1, activation='sigmoid'))
-model4.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-history4 = model4.fit(x, y, validation_split=0.2, epochs=500, batch_size=32, verbose=0, callbacks=callbacks)
+model4.compile(loss='binary_crossentropy', optimizer='sgd', metrics=['accuracy'])
+history4 = model4.fit(x, y, validation_split=0.1, epochs=1000, batch_size=10, verbose=0, callbacks=callbacks)
 
 #Plot results:
 plt.subplot(2, 2, 1)  
